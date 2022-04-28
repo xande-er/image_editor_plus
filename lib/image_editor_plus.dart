@@ -596,54 +596,54 @@ class _SingleImageEditorState extends State<SingleImageEditor> {
                     setState(() {});
                   },
                 ),
-                BottomButton(
-                  icon: Icons.edit,
-                  text: 'Brush',
-                  onTap: () async {
-                    var drawing = await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ImageEditorDrawing(
-                          image: currentImage.image,
-                        ),
-                      ),
-                    );
-
-                    if (drawing != null) {
-                      undoLayers.clear();
-                      removedLayers.clear();
-
-                      layers.add(
-                        ImageLayerData(
-                          image: ImageItem(drawing),
-                        ),
-                      );
-
-                      setState(() {});
-                    }
-                  },
-                ),
-                BottomButton(
-                  icon: Icons.text_fields,
-                  text: 'Text',
-                  onTap: () async {
-                    TextLayerData? layer = await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const TextEditorImage(),
-                      ),
-                    );
-
-                    if (layer == null) return;
-
-                    undoLayers.clear();
-                    removedLayers.clear();
-
-                    layers.add(layer);
-
-                    setState(() {});
-                  },
-                ),
+                // BottomButton(
+                //   icon: Icons.edit,
+                //   text: 'Brush',
+                //   onTap: () async {
+                //     var drawing = await Navigator.push(
+                //       context,
+                //       MaterialPageRoute(
+                //         builder: (context) => ImageEditorDrawing(
+                //           image: currentImage.image,
+                //         ),
+                //       ),
+                //     );
+                //
+                //     if (drawing != null) {
+                //       undoLayers.clear();
+                //       removedLayers.clear();
+                //
+                //       layers.add(
+                //         ImageLayerData(
+                //           image: ImageItem(drawing),
+                //         ),
+                //       );
+                //
+                //       setState(() {});
+                //     }
+                //   },
+                // ),
+                // BottomButton(
+                //   icon: Icons.text_fields,
+                //   text: 'Text',
+                //   onTap: () async {
+                //     TextLayerData? layer = await Navigator.push(
+                //       context,
+                //       MaterialPageRoute(
+                //         builder: (context) => const TextEditorImage(),
+                //       ),
+                //     );
+                //
+                //     if (layer == null) return;
+                //
+                //     undoLayers.clear();
+                //     removedLayers.clear();
+                //
+                //     layers.add(layer);
+                //
+                //     setState(() {});
+                //   },
+                // ),
                 BottomButton(
                   icon: Icons.flip,
                   text: 'Flip',
@@ -875,27 +875,27 @@ class _SingleImageEditorState extends State<SingleImageEditor> {
                     setState(() {});
                   },
                 ),
-                BottomButton(
-                  icon: FontAwesomeIcons.smile,
-                  text: 'Emoji',
-                  onTap: () async {
-                    EmojiLayerData? layer = await showModalBottomSheet(
-                      context: context,
-                      backgroundColor: black,
-                      builder: (BuildContext context) {
-                        return const Emojies();
-                      },
-                    );
-
-                    if (layer == null) return;
-
-                    undoLayers.clear();
-                    removedLayers.clear();
-                    layers.add(layer);
-
-                    setState(() {});
-                  },
-                ),
+                // BottomButton(
+                //   icon: FontAwesomeIcons.smile,
+                //   text: 'Emoji',
+                //   onTap: () async {
+                //     EmojiLayerData? layer = await showModalBottomSheet(
+                //       context: context,
+                //       backgroundColor: black,
+                //       builder: (BuildContext context) {
+                //         return const Emojies();
+                //       },
+                //     );
+                //
+                //     if (layer == null) return;
+                //
+                //     undoLayers.clear();
+                //     removedLayers.clear();
+                //     layers.add(layer);
+                //
+                //     setState(() {});
+                //   },
+                // ),
               ],
             ),
           ),
