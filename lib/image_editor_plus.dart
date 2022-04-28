@@ -2,14 +2,15 @@ library image_editor_plus;
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:math' as math;
 import 'dart:typed_data';
+
 import 'package:colorfilter_generator/colorfilter_generator.dart';
 import 'package:colorfilter_generator/presets.dart';
 import 'package:extended_image/extended_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:hand_signature/signature.dart';
 import 'package:image/image.dart' as img;
 import 'package:image_editor/image_editor.dart' as image_editor;
@@ -17,15 +18,15 @@ import 'package:image_editor_plus/data/image_item.dart';
 import 'package:image_editor_plus/data/layer.dart';
 import 'package:image_editor_plus/layers/background_blur_layer.dart';
 import 'package:image_editor_plus/layers/background_layer.dart';
-import 'package:image_editor_plus/layers/image_layer.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:image_editor_plus/modules/all_emojies.dart';
 import 'package:image_editor_plus/layers/emoji_layer.dart';
-import 'package:image_editor_plus/modules/text.dart';
+import 'package:image_editor_plus/layers/image_layer.dart';
 import 'package:image_editor_plus/layers/text_layer.dart';
+import 'package:image_editor_plus/ui/buttons/b_transparent_scalable_button.dart';
+import 'package:image_editor_plus/ui/text/read_text.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:nb_utils/nb_utils.dart';
 import 'package:screenshot/screenshot.dart';
-import 'dart:math' as math;
+
 import 'modules/colors_picker.dart';
 
 late Size viewportSize;
@@ -34,8 +35,7 @@ double viewportRatio = 1;
 List<Layer> layers = [], undoLayers = [], removedLayers = [];
 Map<String, String> _translations = {};
 
-String i18n(String sourceString) =>
-    _translations[sourceString.toLowerCase()] ?? sourceString;
+String i18n(String sourceString) => _translations[sourceString.toLowerCase()] ?? sourceString;
 
 /// Single endpoint for MultiImageEditor & SingleImageEditor
 class ImageEditor extends StatelessWidget {
@@ -61,8 +61,7 @@ class ImageEditor extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (images != null && image == null && !allowCamera && !allowGallery) {
-      throw Exception(
-          'No image to work with, provide an image or allow the image picker.');
+      throw Exception('No image to work with, provide an image or allow the image picker.');
     }
 
     if ((image == null || images != null) && allowMultiple == true) {
@@ -92,16 +91,16 @@ class ImageEditor extends StatelessWidget {
 
   /// Set custom theme properties default is dark theme with white text
   static ThemeData theme = ThemeData(
-    backgroundColor: Colors.black,
+    backgroundColor: Color(0xff30313F),
     appBarTheme: const AppBarTheme(
-      backgroundColor: Colors.black87,
+      backgroundColor: Color(0xff30313F),
       iconTheme: IconThemeData(color: Colors.white),
       systemOverlayStyle: SystemUiOverlayStyle.light,
       toolbarTextStyle: TextStyle(color: Colors.white),
       titleTextStyle: TextStyle(color: Colors.white),
     ),
     bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-      backgroundColor: Colors.black,
+      backgroundColor: Color(0xff30313F),
     ),
     textTheme: const TextTheme(
       bodyMedium: TextStyle(color: Colors.white),
@@ -151,7 +150,12 @@ class _MultiImageEditorState extends State<MultiImageEditor> {
           systemOverlayStyle: SystemUiOverlayStyle.light,
           automaticallyImplyLeading: false,
           actions: [
-            const BackButton(),
+            // const BackButton(),
+            Padding(
+              padding: const EdgeInsets.only(left: 15),
+              child: BTransparentScalableButton(
+                  scale: ScaleFormat.big, child: Icon(Icons.arrow_back_sharp, color: white, size: 32), onTap: () => Navigator.pop(context)),
+            ),
             const Spacer(),
             if (images.length < widget.maxLength && widget.allowGallery)
               IconButton(
@@ -168,8 +172,7 @@ class _MultiImageEditorState extends State<MultiImageEditor> {
               IconButton(
                 icon: const Icon(Icons.camera_alt),
                 onPressed: () async {
-                  var selected =
-                      await picker.pickImage(source: ImageSource.camera);
+                  var selected = await picker.pickImage(source: ImageSource.camera);
 
                   if (selected == null) return;
 
@@ -177,7 +180,10 @@ class _MultiImageEditorState extends State<MultiImageEditor> {
                 },
               ).paddingSymmetric(horizontal: 8),
             IconButton(
-              icon: const Icon(Icons.check),
+              icon: const Icon(
+                Icons.check,
+                color: Color(0xffED6A32),
+              ),
               onPressed: () async {
                 Navigator.pop(context, images);
               },
@@ -197,8 +203,7 @@ class _MultiImageEditorState extends State<MultiImageEditor> {
                     for (var image in images)
                       Stack(children: [
                         Container(
-                          margin: const EdgeInsets.only(
-                              top: 32, right: 32, bottom: 32),
+                          margin: const EdgeInsets.only(top: 32, right: 32, bottom: 32),
                           width: 200,
                           height: 300,
                           decoration: BoxDecoration(
@@ -338,13 +343,17 @@ class _SingleImageEditorState extends State<SingleImageEditor> {
 
   List<Widget> get filterActions {
     return [
-      const BackButton(),
+      // const BackButton(),
+      Padding(
+        padding: const EdgeInsets.only(left: 15),
+        child: BTransparentScalableButton(
+            scale: ScaleFormat.big, child: Icon(Icons.arrow_back_sharp, color: white, size: 32), onTap: () => Navigator.pop(context)),
+      ),
       const Spacer(),
-      IconButton(
-        icon: Icon(Icons.undo,
-            color:
-                layers.length > 1 || removedLayers.isNotEmpty ? white : grey),
-        onPressed: () {
+      BTransparentScalableButton(
+        scale: ScaleFormat.big,
+        child: Icon(Icons.undo, color: layers.length > 1 || removedLayers.isNotEmpty ? white : grey, size: 25),
+        onTap: () {
           if (removedLayers.isNotEmpty) {
             layers.add(removedLayers.removeLast());
             setState(() {});
@@ -357,17 +366,18 @@ class _SingleImageEditorState extends State<SingleImageEditor> {
 
           setState(() {});
         },
-      ).paddingSymmetric(horizontal: 8),
-      IconButton(
-        icon: Icon(Icons.redo, color: undoLayers.isNotEmpty ? white : grey),
-        onPressed: () {
+      ).paddingSymmetric(horizontal: 10),
+      BTransparentScalableButton(
+        scale: ScaleFormat.big,
+        child: Icon(Icons.redo, color: undoLayers.isNotEmpty ? white : grey, size: 25),
+        onTap: () {
           if (undoLayers.isEmpty) return;
 
           layers.add(undoLayers.removeLast());
 
           setState(() {});
         },
-      ).paddingSymmetric(horizontal: 8),
+      ).paddingSymmetric(horizontal: 10),
       if (widget.allowGallery)
         IconButton(
           icon: const Icon(Icons.photo),
@@ -390,17 +400,17 @@ class _SingleImageEditorState extends State<SingleImageEditor> {
             await currentImage.load(image);
           },
         ).paddingSymmetric(horizontal: 8),
-      IconButton(
-        icon: const Icon(Icons.check),
-        onPressed: () async {
+      BTransparentScalableButton(
+        scale: ScaleFormat.big,
+        child: const Icon(Icons.check, color: Color(0xffED6A32), size: 32),
+        onTap: () async {
           resetTransformation();
 
-          var binaryIntList =
-              await screenshotController.capture(pixelRatio: pixelRatio);
+          var binaryIntList = await screenshotController.capture(pixelRatio: pixelRatio);
 
           Navigator.pop(context, binaryIntList);
         },
-      ).paddingSymmetric(horizontal: 8),
+      ).paddingSymmetric(horizontal: 15),
     ];
   }
 
@@ -540,9 +550,7 @@ class _SingleImageEditorState extends State<SingleImageEditor> {
                       if (details.pointerCount == 2) {
                         // print([details.horizontalScale, details.verticalScale]);
                         if (details.horizontalScale != 1) {
-                          scaleFactor = lastScaleFactor *
-                              math.min(details.horizontalScale,
-                                  details.verticalScale);
+                          scaleFactor = lastScaleFactor * math.min(details.horizontalScale, details.verticalScale);
                           setState(() {});
                         }
                       }
@@ -558,9 +566,11 @@ class _SingleImageEditorState extends State<SingleImageEditor> {
           ),
         ),
         bottomNavigationBar: Container(
-          height: 86 + MediaQuery.of(context).padding.bottom,
+          width: MediaQuery.of(context).size.width,
+          height: 88 + MediaQuery.of(context).padding.bottom,
           padding: const EdgeInsets.symmetric(vertical: 16),
           decoration: const BoxDecoration(
+            color: Color(0xff30313F),
             boxShadow: [
               BoxShadow(blurRadius: 10),
             ],
@@ -575,8 +585,7 @@ class _SingleImageEditorState extends State<SingleImageEditor> {
                   onTap: () async {
                     resetTransformation();
 
-                    var data = await screenshotController.capture(
-                        pixelRatio: pixelRatio);
+                    var data = await screenshotController.capture(pixelRatio: pixelRatio);
 
                     Uint8List? img = await Navigator.push(
                       context,
@@ -694,9 +703,7 @@ class _SingleImageEditorState extends State<SingleImageEditor> {
 
                     showModalBottomSheet(
                       shape: const RoundedRectangleBorder(
-                        borderRadius: BorderRadius.only(
-                            topRight: Radius.circular(10),
-                            topLeft: Radius.circular(10)),
+                        borderRadius: BorderRadius.only(topRight: Radius.circular(10), topLeft: Radius.circular(10)),
                       ),
                       context: context,
                       builder: (context) {
@@ -704,59 +711,54 @@ class _SingleImageEditorState extends State<SingleImageEditor> {
                           builder: (context, setS) {
                             return Container(
                               decoration: const BoxDecoration(
-                                color: Colors.black87,
-                                borderRadius: BorderRadius.only(
-                                    topRight: Radius.circular(10),
-                                    topLeft: Radius.circular(10)),
+                                color: Color(0xff30313F),
+                                borderRadius: BorderRadius.only(topRight: Radius.circular(10), topLeft: Radius.circular(10)),
                               ),
                               padding: const EdgeInsets.all(20),
                               height: 400,
                               child: Column(
                                 children: [
                                   Center(
-                                      child: Text(
-                                    i18n('Slider Filter Color').toUpperCase(),
-                                  )),
+                                      child: readText(
+                                          text: 'Slider Filter Color', color: Colors.white, fontWeight: FontWeight.w600, size: 22)),
                                   const Divider(),
                                   const SizedBox(height: 20.0),
-                                  Text(
-                                    i18n('Slider Color'),
-                                  ),
+                                  Center(child: readText(text: 'Slider Color', color: Colors.white, fontWeight: FontWeight.w400, size: 22)),
                                   const SizedBox(height: 10),
                                   Row(children: [
                                     Expanded(
-                                      child: BarColorPicker(
-                                        width: 300,
-                                        thumbColor: white,
-                                        cornerRadius: 10,
-                                        pickMode: PickMode.color,
-                                        colorListener: (int value) {
-                                          setS(() {
-                                            setState(() {
-                                              blurLayer.color = Color(value);
+                                      child: Padding(
+                                        padding: const EdgeInsets.only(left: 15),
+                                        child: BarColorPicker(
+                                          width: MediaQuery.of(context).size.width / 1.4 - 5,
+                                          thumbColor: white,
+                                          cornerRadius: 15,
+                                          thumbRadius: 10,
+                                          pickMode: PickMode.color,
+                                          colorListener: (int value) {
+                                            setS(() {
+                                              setState(() {
+                                                blurLayer.color = Color(value);
+                                              });
                                             });
-                                          });
-                                        },
+                                          },
+                                        ),
                                       ),
                                     ),
-                                    TextButton(
-                                      child: Text(
-                                        i18n('Reset'),
-                                      ),
-                                      onPressed: () {
+                                    BTransparentScalableButton(
+                                      scale: ScaleFormat.big,
+                                      child: readText(text: 'Reset', color: Color(0xffED6A32), fontWeight: FontWeight.w400, size: 20),
+                                      onTap: () {
                                         setState(() {
                                           setS(() {
-                                            blurLayer.color =
-                                                Colors.transparent;
+                                            blurLayer.color = Colors.transparent;
                                           });
                                         });
                                       },
                                     )
                                   ]),
                                   const SizedBox(height: 5.0),
-                                  Text(
-                                    i18n('Blur Radius'),
-                                  ),
+                                  Center(child: readText(text: 'Blur Radius', color: Colors.white, fontWeight: FontWeight.w400, size: 22)),
                                   const SizedBox(height: 10.0),
                                   Row(children: [
                                     Expanded(
@@ -775,11 +777,10 @@ class _SingleImageEditorState extends State<SingleImageEditor> {
                                         },
                                       ),
                                     ),
-                                    TextButton(
-                                      child: Text(
-                                        i18n('Reset'),
-                                      ),
-                                      onPressed: () {
+                                    BTransparentScalableButton(
+                                      scale: ScaleFormat.big,
+                                      child: readText(text: 'Reset', color: Color(0xffED6A32), fontWeight: FontWeight.w400, size: 20),
+                                      onTap: () {
                                         setS(() {
                                           setState(() {
                                             blurLayer.color = Colors.white;
@@ -789,9 +790,8 @@ class _SingleImageEditorState extends State<SingleImageEditor> {
                                     )
                                   ]),
                                   const SizedBox(height: 5.0),
-                                  Text(
-                                    i18n('Color Opacity'),
-                                  ),
+                                  Center(
+                                      child: readText(text: 'Color Opacity', color: Colors.white, fontWeight: FontWeight.w400, size: 22)),
                                   const SizedBox(height: 10.0),
                                   Row(children: [
                                     Expanded(
@@ -810,11 +810,10 @@ class _SingleImageEditorState extends State<SingleImageEditor> {
                                         },
                                       ),
                                     ),
-                                    TextButton(
-                                      child: Text(
-                                        i18n('Reset'),
-                                      ),
-                                      onPressed: () {
+                                    BTransparentScalableButton(
+                                      scale: ScaleFormat.big,
+                                      child: readText(text: 'Reset', color: Color(0xffED6A32), fontWeight: FontWeight.w400, size: 20),
+                                      onTap: () {
                                         setS(() {
                                           setState(() {
                                             blurLayer.opacity = 0.0;
@@ -847,8 +846,7 @@ class _SingleImageEditorState extends State<SingleImageEditor> {
                   onTap: () async {
                     resetTransformation();
 
-                    var data = await screenshotController.capture(
-                        pixelRatio: pixelRatio);
+                    var data = await screenshotController.capture(pixelRatio: pixelRatio);
 
                     Uint8List? editedImage = await Navigator.push(
                       context,
@@ -935,18 +933,18 @@ class BottomButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return BTransparentScalableButton(
+      scale: ScaleFormat.big,
       onTap: onTap,
       onLongPress: onLongPress,
       child: Column(
         children: [
           Icon(
             icon,
+            color: Colors.white,
           ),
-          const SizedBox(height: 8),
-          Text(
-            i18n(text),
-          ),
+          const SizedBox(height: 10),
+          readText(text: text, color: Colors.white, fontWeight: FontWeight.w500, size: 18),
         ],
       ).paddingSymmetric(horizontal: 16),
     );
@@ -964,8 +962,7 @@ class ImageCropper extends StatefulWidget {
 }
 
 class _ImageCropperState extends State<ImageCropper> {
-  final GlobalKey<ExtendedImageEditorState> _controller =
-      GlobalKey<ExtendedImageEditorState>();
+  final GlobalKey<ExtendedImageEditorState> _controller = GlobalKey<ExtendedImageEditorState>();
 
   double? aspectRatio;
   double? aspectRatioOriginal;
@@ -989,10 +986,22 @@ class _ImageCropperState extends State<ImageCropper> {
       data: ImageEditor.theme,
       child: Scaffold(
         appBar: AppBar(
+          automaticallyImplyLeading: false,
+
           systemOverlayStyle: SystemUiOverlayStyle.light,
           actions: [
+            Padding(
+              padding: const EdgeInsets.only(left: 15),
+              child: BTransparentScalableButton(
+                  scale: ScaleFormat.big, child: Icon(Icons.arrow_back_sharp, color: white, size: 32), onTap: () => Navigator.pop(context)),
+            ),
+            const Spacer(),
             IconButton(
-              icon: const Icon(Icons.check),
+              icon: const Icon(
+                Icons.check,
+                color: Color(0xffED6A32),
+                size: 32,
+              ),
               onPressed: () async {
                 var state = _controller.currentState;
 
@@ -1021,8 +1030,9 @@ class _ImageCropperState extends State<ImageCropper> {
           ),
         ),
         bottomNavigationBar: SafeArea(
+          bottom: false,
           child: SizedBox(
-            height: 80,
+            height: 77 + MediaQuery.of(context).padding.bottom,
             child: Column(
               children: [
                 // Container(
@@ -1081,49 +1091,57 @@ class _ImageCropperState extends State<ImageCropper> {
                 //   ),
                 // ),
                 Container(
-                  height: 80,
+                  width: MediaQuery.of(context).size.width,
+                  height: 77 + MediaQuery.of(context).padding.bottom,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
                   decoration: const BoxDecoration(
+                    color: Color(0xff30313F),
                     boxShadow: [
-                      BoxShadow(
-                        color: black,
-                        blurRadius: 10,
-                      ),
+                      BoxShadow(blurRadius: 10),
                     ],
                   ),
-                  child: ListView(
-                    scrollDirection: Axis.horizontal,
-                    children: <Widget>[
-                      IconButton(
-                        icon: Icon(
-                          Icons.portrait,
-                          color: isLandscape ? gray : white,
-                        ).paddingSymmetric(horizontal: 8, vertical: 4),
-                        onPressed: () {
-                          isLandscape = false;
-                          if (aspectRatioOriginal != null) {
-                            aspectRatio = 1 / aspectRatioOriginal!;
-                          }
-                          setState(() {});
-                        },
-                      ),
-                      IconButton(
-                        icon: Icon(
-                          Icons.landscape,
-                          color: isLandscape ? white : gray,
-                        ).paddingSymmetric(horizontal: 8, vertical: 4),
-                        onPressed: () {
-                          isLandscape = true;
-                          aspectRatio = aspectRatioOriginal!;
-                          setState(() {});
-                        },
-                      ),
-                      imageRatioButton(null, 'Freeform'),
-                      imageRatioButton(1, 'Square'),
-                      imageRatioButton(4 / 3, '4:3'),
-                      imageRatioButton(5 / 4, '5:4'),
-                      imageRatioButton(7 / 5, '7:5'),
-                      imageRatioButton(16 / 9, '16:9'),
-                    ],
+                  child: SafeArea(
+                    bottom: false,
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(horizontal: 15),
+                      children: <Widget>[
+                        BTransparentScalableButton(
+                          scale: ScaleFormat.big,
+                          child: Icon(
+                            Icons.portrait,
+                            color: isLandscape ? gray : white,
+                            size: 35,
+                          ).paddingSymmetric(horizontal: 8, vertical: 4),
+                          onTap: () {
+                            isLandscape = false;
+                            if (aspectRatioOriginal != null) {
+                              aspectRatio = 1 / aspectRatioOriginal!;
+                            }
+                            setState(() {});
+                          },
+                        ),
+                        BTransparentScalableButton(
+                          scale: ScaleFormat.big,
+                          child: Icon(
+                            Icons.landscape,
+                            color: isLandscape ? white : gray,
+                            size: 35,
+                          ).paddingSymmetric(horizontal: 8, vertical: 4),
+                          onTap: () {
+                            isLandscape = true;
+                            aspectRatio = aspectRatioOriginal!;
+                            setState(() {});
+                          },
+                        ),
+                        imageRatioButton(null, 'Freeform'),
+                        imageRatioButton(1, 'Square'),
+                        imageRatioButton(4 / 3, '4:3'),
+                        imageRatioButton(5 / 4, '5:4'),
+                        imageRatioButton(7 / 5, '7:5'),
+                        imageRatioButton(16 / 9, '16:9'),
+                      ],
+                    ),
                   ),
                 ),
               ],
@@ -1134,8 +1152,7 @@ class _ImageCropperState extends State<ImageCropper> {
     );
   }
 
-  Future<Uint8List?> cropImageDataWithNativeLibrary(
-      {required ExtendedImageEditorState state}) async {
+  Future<Uint8List?> cropImageDataWithNativeLibrary({required ExtendedImageEditorState state}) async {
     final Rect? cropRect = state.getCropRect();
     final EditActionDetails action = state.editAction!;
 
@@ -1144,16 +1161,14 @@ class _ImageCropperState extends State<ImageCropper> {
     final bool flipVertical = action.flipX;
     final Uint8List img = state.rawImageData;
 
-    final image_editor.ImageEditorOption option =
-        image_editor.ImageEditorOption();
+    final image_editor.ImageEditorOption option = image_editor.ImageEditorOption();
 
     if (action.needCrop) {
       option.addOption(image_editor.ClipOption.fromRect(cropRect!));
     }
 
     if (action.needFlip) {
-      option.addOption(image_editor.FlipOption(
-          horizontal: flipHorizontal, vertical: flipVertical));
+      option.addOption(image_editor.FlipOption(horizontal: flipHorizontal, vertical: flipVertical));
     }
 
     if (action.hasRotateAngle) {
@@ -1172,22 +1187,20 @@ class _ImageCropperState extends State<ImageCropper> {
   }
 
   Widget imageRatioButton(double? ratio, String title) {
-    return TextButton(
-      onPressed: () {
-        aspectRatioOriginal = ratio;
-        if (aspectRatioOriginal != null && isLandscape == false) {
-          aspectRatio = 1 / aspectRatioOriginal!;
-        } else {
-          aspectRatio = aspectRatioOriginal;
-        }
-        setState(() {});
-      },
-      child: Text(
-        i18n(title),
-        style: TextStyle(
-          color: aspectRatioOriginal == ratio ? white : gray,
-        ),
-      ).paddingSymmetric(horizontal: 8, vertical: 4),
+    return Center(
+      child: BTransparentScalableButton(
+        scale: ScaleFormat.big,
+        onTap: () {
+          aspectRatioOriginal = ratio;
+          if (aspectRatioOriginal != null && isLandscape == false) {
+            aspectRatio = 1 / aspectRatioOriginal!;
+          } else {
+            aspectRatio = aspectRatioOriginal;
+          }
+          setState(() {});
+        },
+        child: readText(text: title, fontWeight: FontWeight.w500, size: 17).paddingSymmetric(horizontal: 8, vertical: 4),
+      ),
     );
   }
 }
@@ -1231,14 +1244,22 @@ class _ImageFiltersState extends State<ImageFilters> {
       data: ImageEditor.theme,
       child: Scaffold(
         appBar: AppBar(
+          automaticallyImplyLeading: false,
           systemOverlayStyle: SystemUiOverlayStyle.light,
           actions: [
-            IconButton(
-              icon: const Icon(Icons.check),
-              onPressed: () async {
+            Padding(
+              padding: const EdgeInsets.only(left: 15),
+              child: BTransparentScalableButton(
+                  scale: ScaleFormat.big, child: Icon(Icons.arrow_back_sharp, color: white, size: 32), onTap: () => Navigator.pop(context)),
+            ),
+            const Spacer(),
+            BTransparentScalableButton(
+              scale: ScaleFormat.big,
+              child: const Icon(Icons.check, color: Color(0xffED6A32), size: 32),
+              onTap: () async {
                 Navigator.pop(context, filterAppliedImage);
               },
-            ).paddingSymmetric(horizontal: 8),
+            ).paddingSymmetric(horizontal: 15),
           ],
         ),
         body: Center(
@@ -1306,35 +1327,37 @@ class _ImageFiltersState extends State<ImageFilters> {
   }
 
   Widget filterPreviewButton({required filter, required String name}) {
-    return Column(children: [
-      Container(
-        height: 64,
-        width: 64,
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(48),
-          border: Border.all(
-            color: Colors.black,
-            width: 2,
-          ),
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(48),
-          child: FilterAppliedImage(
-            image: widget.image,
-            filter: filter,
-            fit: BoxFit.cover,
-          ),
-        ),
-      ),
-      Text(
-        i18n(name),
-        style: const TextStyle(fontSize: 12),
-      ),
-    ]).onTap(() {
-      selectedFilter = filter;
-      setState(() {});
-    });
+    return Padding(
+        padding: const EdgeInsets.only(left: 15),
+        child: BTransparentScalableButton(
+            scale: ScaleFormat.big,
+            onTap: () {
+              selectedFilter = filter;
+              setState(() {});
+            },
+            child: Column(children: [
+              Container(
+                height: 64,
+                width: 64,
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(48),
+                  border: Border.all(
+                    color: Colors.black,
+                    width: 2,
+                  ),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(48),
+                  child: FilterAppliedImage(
+                    image: widget.image,
+                    filter: filter,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+              readText(text: name, color: const Color(0xff30313F), fontWeight: FontWeight.w500, size: 16)
+            ])));
   }
 }
 
@@ -1362,8 +1385,7 @@ class FilterAppliedImage extends StatelessWidget {
         return;
       }
 
-      final image_editor.ImageEditorOption option =
-          image_editor.ImageEditorOption();
+      final image_editor.ImageEditorOption option = image_editor.ImageEditorOption();
 
       option.addOption(image_editor.ColorOption(matrix: filter.matrix));
 
@@ -1499,7 +1521,7 @@ class _ImageEditorDrawingState extends State<ImageEditorDrawing> {
               },
             ).paddingSymmetric(horizontal: 8),
             IconButton(
-              icon: const Icon(Icons.check),
+              icon: const Icon(Icons.check, color: Color(0xffED6A32)),
               onPressed: () async {
                 if (control.paths.isEmpty) return Navigator.pop(context);
                 var data = await control.toImage(color: currentColor);
@@ -1581,6 +1603,7 @@ class ColorButton extends StatelessWidget {
   final Color color;
   final Function onTap;
   final bool isSelected;
+
   const ColorButton({
     Key? key,
     required this.color,
