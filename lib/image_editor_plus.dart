@@ -1535,7 +1535,7 @@ class _ImageEditorDrawingState extends State<ImageEditorDrawing> {
           height: MediaQuery.of(context).size.height,
           width: MediaQuery.of(context).size.width,
           color: currentColor == black ? white : black,
-          child: HandSignaturePainterView(
+          child: HandSignature(
             control: control,
             color: currentColor,
             width: 1.0,
