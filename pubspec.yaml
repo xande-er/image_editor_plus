@@ -16,7 +16,7 @@ dependencies:
   cupertino_icons: ^1.0.4
   zoom_widget: ^0.2.1
   font_awesome_flutter: ^10.1.0
-  image_picker: ^0.8.5
+  image_picker: ^0.8.5+3
   path_provider: ^2.0.9
   permission_handler: ^8.1.6
   screenshot: ^1.2.3
